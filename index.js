@@ -1,50 +1,28 @@
-import express from "express";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
-const app = express();
-
-app.get("/pdf", async (req, res) => {
-  // 🧠 1. get data from URL
-  const name = req.query.name || "Guest";
-
-  // 🚀 2. start browser
+export default async function handler(req, res) {
   const browser = await puppeteer.launch({
-    headless: "new"
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
 
   const page = await browser.newPage();
 
-  // 🧾 3. inject data into HTML
-  const html = `
-    <html>
-      <body style="font-family: Arial; padding: 40px;">
-        <h1>Hello ${name}</h1>
-        <p>This PDF was generated dynamically from URL query!</p>
-      </body>
-    </html>
-  `;
+  const name = req.query.name || "Guest";
 
-  await page.setContent(html);
+  await page.setContent(`
+    <h1>Hello ${name}</h1>
+    <p>PDF generated successfully</p>
+  `);
 
-  // 📄 4. generate PDF
-  const pdf = await page.pdf({
-    format: "A4",
-    printBackground: true
-  });
+  const pdf = await page.pdf({ format: "A4" });
 
   await browser.close();
 
-  // 📥 5. send to user as download
-  res.set({
-    "Content-Type": "application/pdf",
-    "Content-Disposition": `attachment; filename="${name}.pdf"`
-  });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=file.pdf");
 
-  if(res.send(pdf)){
-     alert("Your file has been downloaded");
-  }
-});
-
-app.listen(3000, () => {
-  console.log("http://localhost:3000/");
-});
+  res.send(pdf);
+}
