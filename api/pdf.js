@@ -5,7 +5,6 @@ export default async function handler(req, res) {
   let browser;
 
   try {
-    const name = req.query.name || "Guest";
 
     browser = await puppeteer.launch({
       args: chromium.args,
@@ -15,19 +14,13 @@ export default async function handler(req, res) {
 
     const page = await browser.newPage();
 
-    const html = `
-      <html>
-        <head>
-          <meta charset="utf-8" />
-        </head>
-        <body style="font-family: Arial; padding: 40px;">
-          <h1>Hello ${name}</h1>
-          <p>PDF generated successfully 🚀</p>
-        </body>
-      </html>
-    `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    const c = req.query.c;
+    
+    await page.goto(c, {
+     waitUntil: "networkidle0",
+    });
+    
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -40,7 +33,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${name}.pdf"`
+      `attachment; filename="2018_final_year_report_card.pdf"`
     );
 
     res.setHeader("Content-Length", pdfBuffer.length);
