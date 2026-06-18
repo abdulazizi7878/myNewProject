@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     const c = req.query.c;
     
-    await page.goto(c, {
+    await page.goto(`${c}&code=456123`, {
      waitUntil: "networkidle0",
     });
     
